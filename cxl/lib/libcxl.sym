@@ -78,6 +78,11 @@ global:
 	cxl_cmd_partition_info_get_active_persistent_bytes;
 	cxl_cmd_partition_info_get_next_volatile_bytes;
 	cxl_cmd_partition_info_get_next_persistent_bytes;
+	cxl_cmd_new_set_partition_info;
+	cxl_memdev_set_partition_info;
+	cxl_cmd_partition_info_flag_none;
+	cxl_cmd_partition_info_flag_immediate;
+
 local:
         *;
 };
