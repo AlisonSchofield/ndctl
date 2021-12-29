@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <util/log.h>
+#include <util/size.h>
 #include <cxl/libcxl.h>
 #include <util/parse-options.h>
 #include <ccan/minmax/minmax.h>
@@ -24,6 +25,7 @@ static struct parameters {
 	unsigned len;
 	unsigned offset;
 	bool verbose;
+	const char *volatile_size;
 } param;
 
 #define fail(fmt, ...) \
@@ -48,6 +50,10 @@ OPT_UINTEGER('s', "size", &param.len, "number of label bytes to operate"), \
 OPT_UINTEGER('O', "offset", &param.offset, \
 	"offset into the label area to start operation")
 
+#define SET_PARTITION_OPTIONS() \
+OPT_STRING('s', "volatile_size",  &param.volatile_size, "volatile-size", \
+	"next volatile partition size in bytes")
+
 static const struct option read_options[] = {
 	BASE_OPTIONS(),
 	LABEL_OPTIONS(),
@@ -65,6 +71,12 @@ static const struct option write_options[] = {
 static const struct option zero_options[] = {
 	BASE_OPTIONS(),
 	LABEL_OPTIONS(),
+	OPT_END(),
+};
+
+static const struct option set_partition_options[] = {
+	BASE_OPTIONS(),
+	SET_PARTITION_OPTIONS(),
 	OPT_END(),
 };
 
@@ -175,6 +187,80 @@ out:
 	return rc;
 }
 
+static int validate_partition(struct cxl_memdev *memdev,
+		unsigned long long volatile_request)
+{
+	unsigned long long total_cap, volatile_only, persistent_only;
+	unsigned long long partitionable_bytes, partition_align_bytes;
+	const char *devname = cxl_memdev_get_devname(memdev);
+	struct cxl_cmd *cmd;
+	int rc;
+
+	cmd = cxl_cmd_new_identify(memdev);
+	if (!cmd)
+		return -ENXIO;
+	rc = cxl_cmd_submit(cmd);
+	if (rc < 0)
+		goto err;
+	rc = cxl_cmd_get_mbox_status(cmd);
+	if (rc != 0)
+		goto err;
+
+	partition_align_bytes = cxl_cmd_identify_get_partition_align_bytes(cmd);
+	if (partition_align_bytes == 0) {
+		fprintf(stderr, "%s: no partitionable capacity\n", devname);
+		rc = -EINVAL;
+		goto err;
+	}
+
+	total_cap = cxl_cmd_identify_get_total_bytes(cmd);
+	volatile_only = cxl_cmd_identify_get_volatile_only_bytes(cmd);
+	persistent_only = cxl_cmd_identify_get_persistent_only_bytes(cmd);
+
+	partitionable_bytes = total_cap - volatile_only - persistent_only;
+
+	if (volatile_request > partitionable_bytes) {
+		fprintf(stderr, "%s: volatile size %lld exceeds partitionable capacity %lld\n",
+			devname, volatile_request, partitionable_bytes);
+		rc = -EINVAL;
+		goto err;
+	}
+	if (!IS_ALIGNED(volatile_request, partition_align_bytes)) {
+		fprintf(stderr, "%s: volatile size %lld is not partition aligned %lld\n",
+			devname, volatile_request, partition_align_bytes);
+		rc = -EINVAL;
+	}
+err:
+	cxl_cmd_unref(cmd);
+	return rc;
+}
+
+static int action_set_partition(struct cxl_memdev *memdev,
+		struct action_context *actx)
+{
+	const char *devname = cxl_memdev_get_devname(memdev);
+	unsigned long long volatile_request;
+	int rc;
+
+	volatile_request = parse_size64(param.volatile_size);
+	if (volatile_request == ULLONG_MAX) {
+		fprintf(stderr, "%s: failed to parse volatile size '%s'\n",
+			devname, param.volatile_size);
+		return -EINVAL;
+	}
+
+	rc = validate_partition(memdev, volatile_request);
+	if (rc)
+		return rc;
+
+	rc = cxl_memdev_set_partition_info(memdev, volatile_request,
+			!cxl_cmd_partition_info_flag_immediate());
+	if (rc)
+		fprintf(stderr, "%s error: %s\n", devname, strerror(-rc));
+
+	return rc;
+}
+
 static int memdev_action(int argc, const char **argv, struct cxl_ctx *ctx,
 		int (*action)(struct cxl_memdev *memdev, struct action_context *actx),
 		const struct option *options, const char *usage)
@@ -233,6 +319,11 @@ static int memdev_action(int argc, const char **argv, struct cxl_ctx *ctx,
 			rc = -errno;
 			goto out_close_fout;
 		}
+	}
+
+	if (action == action_set_partition && !param.volatile_size) {
+		usage_with_options(u, options);
+		return -EINVAL;
 	}
 
 	if (param.verbose)
@@ -320,6 +411,16 @@ int cmd_zero_labels(int argc, const char **argv, struct cxl_ctx *ctx)
 			"cxl zero-labels <mem0> [<mem1>..<memN>] [<options>]");
 
 	fprintf(stderr, "zeroed %d mem%s\n", count >= 0 ? count : 0,
+			count > 1 ? "s" : "");
+	return count >= 0 ? 0 : EXIT_FAILURE;
+}
+
+int cmd_set_partition_info(int argc, const char **argv, struct cxl_ctx *ctx)
+{
+	int count = memdev_action(argc, argv, ctx, action_set_partition,
+			set_partition_options,
+			"cxl set-partition-info <mem0> [<mem1>..<memN>] [<options>]");
+	fprintf(stderr, "set_partition %d mem%s\n", count >= 0 ? count : 0,
 			count > 1 ? "s" : "");
 	return count >= 0 ? 0 : EXIT_FAILURE;
 }

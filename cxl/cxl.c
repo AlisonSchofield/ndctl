@@ -64,6 +64,7 @@ static struct cmd_struct commands[] = {
 	{ "zero-labels", .c_fn = cmd_zero_labels },
 	{ "read-labels", .c_fn = cmd_read_labels },
 	{ "write-labels", .c_fn = cmd_write_labels },
+	{ "set-partition-info", .c_fn = cmd_set_partition_info },
 };
 
 int main(int argc, const char **argv)

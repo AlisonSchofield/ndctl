@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0
+
+DESCRIPTION
+-----------
+Partition the device into volatile and persistent capacity. The change
+in partitioning will become the “next” configuration, to become active
+on the next device reset.
+
+Use "cxl list -m <memdev> -I" to examine the partitioning capabilities
+of a device. A partition_alignment_bytes value of zero means there are
+no partitionable bytes available and therefore the partitions cannot be
+changed.
+
+Using this command to change the size of the persistent capacity shall
+result in the loss of data stored.

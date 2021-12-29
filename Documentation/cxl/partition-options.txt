@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: GPL-2.0
+
+<memory device(s)>::
+include::memdev-option.txt[]
+
+-s::
+--size=::
+	Size in bytes of the volatile partition requested.
+
+	Size must align to the devices partition_alignment_bytes.
+	Use 'cxl list -m <memdev> -I' to find partition_alignment_bytes.
+
+	Size must be less than or equal to the device's partitionable bytes.
+	Calculate partitionable bytes by subracting the volatile_only_bytes,
+	and the persistent_only_bytes, from the total_bytes.
+	Use 'cxl list -m <memdev> -I' to find the above mentioned_byte values.
+
+-v::
+	Turn on verbose debug messages in the library (if libcxl was built with
+	logging and debug enabled).

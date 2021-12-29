@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0
+
+cxl-set-partition-info(1)
+=========================
+
+NAME
+----
+cxl-set-partition-info - set the partitioning between volatile and persistent capacity on a CXL memdev
+
+SYNOPSIS
+--------
+[verse]
+'cxl set-partition-info <mem> [ [<mem1>..<memN>] [<options>]'
+
+include::partition-description.txt[]
+Partition the device on the next device reset using the volatile capacity
+requested. Using this command to change the size of the persistent capacity
+shall result in the loss of stored data.
+
+OPTIONS
+-------
+include::partition-options.txt[]
+
+SEE ALSO
+--------
+linkcxl:cxl-list[1],
+CXL-2.0 8.2.9.5.2
