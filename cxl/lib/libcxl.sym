@@ -70,6 +70,11 @@ global:
 	cxl_memdev_zero_label;
 	cxl_memdev_write_label;
 	cxl_memdev_read_label;
+	cxl_cmd_new_get_partition_info;
+	cxl_cmd_partition_info_get_active_volatile_bytes;
+	cxl_cmd_partition_info_get_active_persistent_bytes;
+	cxl_cmd_partition_info_get_next_volatile_bytes;
+	cxl_cmd_partition_info_get_next_persistent_bytes;
 local:
         *;
 };

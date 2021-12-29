@@ -1160,6 +1160,47 @@ CXL_EXPORT ssize_t cxl_cmd_read_label_get_payload(struct cxl_cmd *cmd,
 	return length;
 }
 
+CXL_EXPORT struct cxl_cmd *cxl_cmd_new_get_partition_info(struct cxl_memdev *memdev)
+{
+	return cxl_cmd_new_generic(memdev,
+				   CXL_MEM_COMMAND_ID_GET_PARTITION_INFO);
+}
+
+#define cmd_partition_get_capacity_field(cmd, field)			\
+do {										\
+	struct cxl_cmd_get_partition_info *c =					\
+		(struct cxl_cmd_get_partition_info *)cmd->send_cmd->out.payload;\
+	int rc = cxl_cmd_validate_status(cmd,					\
+			CXL_MEM_COMMAND_ID_GET_PARTITION_INFO);			\
+	if (rc)									\
+		return ULLONG_MAX;							\
+	return le64_to_cpu(c->field) * CXL_CAPACITY_MULTIPLIER;			\
+} while (0)
+
+CXL_EXPORT unsigned long long
+cxl_cmd_partition_info_get_active_volatile_bytes(struct cxl_cmd *cmd)
+{
+	cmd_partition_get_capacity_field(cmd, active_volatile_cap);
+}
+
+CXL_EXPORT unsigned long long
+cxl_cmd_partition_info_get_active_persistent_bytes(struct cxl_cmd *cmd)
+{
+	cmd_partition_get_capacity_field(cmd, active_persistent_cap);
+}
+
+CXL_EXPORT unsigned long long
+cxl_cmd_partition_info_get_next_volatile_bytes(struct cxl_cmd *cmd)
+{
+	cmd_partition_get_capacity_field(cmd, next_volatile_cap);
+}
+
+CXL_EXPORT unsigned long long
+cxl_cmd_partition_info_get_next_persistent_bytes(struct cxl_cmd *cmd)
+{
+	cmd_partition_get_capacity_field(cmd, next_persistent_cap);
+}
+
 CXL_EXPORT int cxl_cmd_submit(struct cxl_cmd *cmd)
 {
 	struct cxl_memdev *memdev = cmd->memdev;
