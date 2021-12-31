@@ -26,6 +26,7 @@ static struct parameters {
 	unsigned offset;
 	bool verbose;
 	const char *volatile_size;
+	bool immediate;
 } param;
 
 #define fail(fmt, ...) \
@@ -52,7 +53,8 @@ OPT_UINTEGER('O', "offset", &param.offset, \
 
 #define SET_PARTITION_OPTIONS() \
 OPT_STRING('s', "volatile_size",  &param.volatile_size, "volatile-size", \
-	"next volatile partition size in bytes")
+	"next volatile partition size in bytes"), \
+OPT_BOOLEAN('i', "immediate", &param.immediate, "partition immediately")
 
 static const struct option read_options[] = {
 	BASE_OPTIONS(),
@@ -187,7 +189,7 @@ out:
 	return rc;
 }
 
-static int validate_partition(struct cxl_memdev *memdev,
+static int validate_partition(struct cxl_memdev *memdev, int immediate,
 		unsigned long long volatile_request)
 {
 	unsigned long long total_cap, volatile_only, persistent_only;
@@ -240,7 +242,7 @@ static int action_set_partition(struct cxl_memdev *memdev,
 {
 	const char *devname = cxl_memdev_get_devname(memdev);
 	unsigned long long volatile_request;
-	int rc;
+	int immediate, rc;
 
 	volatile_request = parse_size64(param.volatile_size);
 	if (volatile_request == ULLONG_MAX) {
@@ -249,12 +251,16 @@ static int action_set_partition(struct cxl_memdev *memdev,
 		return -EINVAL;
 	}
 
-	rc = validate_partition(memdev, volatile_request);
+	immediate = param.immediate ? cxl_cmd_partition_info_flag_immediate()
+		    : !cxl_cmd_partition_info_flag_immediate();
+
+	rc = validate_partition(memdev, immediate, volatile_request);
 	if (rc)
 		return rc;
 
 	rc = cxl_memdev_set_partition_info(memdev, volatile_request,
-			!cxl_cmd_partition_info_flag_immediate());
+					   immediate);
+
 	if (rc)
 		fprintf(stderr, "%s error: %s\n", devname, strerror(-rc));
 
