@@ -71,7 +71,7 @@ int cxl_cmd_identify_get_fw_rev(struct cxl_cmd *cmd, char *fw_rev, int fw_len);
 unsigned long long cxl_cmd_identify_get_total_bytes(struct cxl_cmd *cmd);
 unsigned long long cxl_cmd_identify_get_volatile_only_bytes(struct cxl_cmd *cmd);
 unsigned long long cxl_cmd_identify_get_persistent_only_bytes(struct cxl_cmd *cmd);
-unsigned long long cxl_cmd_identify_get_partition_align(struct cxl_cmd *cmd);
+unsigned long long cxl_cmd_identify_get_partition_align_bytes(struct cxl_cmd *cmd);
 unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd);
 struct cxl_cmd *cxl_cmd_new_get_health_info(struct cxl_memdev *memdev);
 int cxl_cmd_health_info_get_maintenance_needed(struct cxl_cmd *cmd);

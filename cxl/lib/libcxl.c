@@ -1078,7 +1078,7 @@ CXL_EXPORT int cxl_cmd_identify_get_fw_rev(struct cxl_cmd *cmd, char *fw_rev,
 	return 0;
 }
 
-CXL_EXPORT unsigned long long cxl_cmd_identify_get_partition_align(
+CXL_EXPORT unsigned long long cxl_cmd_identify_get_partition_align_bytes(
 		struct cxl_cmd *cmd)
 {
 	struct cxl_cmd_identify *id =
@@ -1089,7 +1089,7 @@ CXL_EXPORT unsigned long long cxl_cmd_identify_get_partition_align(
 	if (cmd->status < 0)
 		return cmd->status;
 
-	return le64_to_cpu(id->partition_align);
+	return le64_to_cpu(id->partition_align) * CXL_CAPACITY_MULTIPLIER;
 }
 
 CXL_EXPORT unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd)

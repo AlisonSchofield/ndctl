@@ -34,7 +34,7 @@ global:
 	cxl_cmd_identify_get_total_bytes;
 	cxl_cmd_identify_get_volatile_only_bytes;
 	cxl_cmd_identify_get_persistent_only_bytes;
-	cxl_cmd_identify_get_partition_align;
+	cxl_cmd_identify_get_partition_align_bytes;
 	cxl_cmd_identify_get_label_size;
 	cxl_cmd_new_get_health_info;
 	cxl_cmd_health_info_get_maintenance_needed;
