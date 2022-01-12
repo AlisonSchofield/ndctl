@@ -28,6 +28,7 @@ cxl_manpages = [
   'cxl-read-labels.txt',
   'cxl-write-labels.txt',
   'cxl-zero-labels.txt',
+  'cxl-set-partition-info.txt',
 ]
 
 foreach man : cxl_manpages
