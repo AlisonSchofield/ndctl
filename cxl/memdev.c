@@ -208,7 +208,7 @@ static int validate_partition(struct cxl_memdev *memdev, int immediate,
 	if (rc != 0)
 		goto err;
 
-	partition_align_bytes = cxl_cmd_identify_get_partition_align_bytes(cmd);
+	partition_align_bytes = cxl_cmd_identify_get_partition_align(cmd);
 	if (partition_align_bytes == 0) {
 		fprintf(stderr, "%s: no partitionable capacity\n", devname);
 		rc = -EINVAL;

@@ -277,7 +277,7 @@ static struct json_object *util_cxl_memdev_partition_to_json(struct cxl_memdev *
 			json_object_object_add(jpart,
 					"persistent_only_bytes", jobj);
 	}
-	cap = cxl_cmd_identify_get_partition_align_bytes(cmd);
+	cap = cxl_cmd_identify_get_partition_align(cmd);
 	jobj = util_json_object_size(cap, flags);
 	if (jobj)
 		json_object_object_add(jpart, "partition_alignment_bytes", jobj);

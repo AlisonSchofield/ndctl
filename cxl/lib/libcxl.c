@@ -1078,7 +1078,7 @@ CXL_EXPORT int cxl_cmd_identify_get_fw_rev(struct cxl_cmd *cmd, char *fw_rev,
 	return 0;
 }
 
-CXL_EXPORT unsigned long long cxl_cmd_identify_get_partition_align_bytes(
+CXL_EXPORT unsigned long long cxl_cmd_identify_get_partition_align(
 		struct cxl_cmd *cmd)
 {
 	struct cxl_cmd_identify *id =
